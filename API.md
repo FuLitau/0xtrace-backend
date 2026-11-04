@@ -692,7 +692,7 @@ Idempotency-Key: <uuid>
 
 权限：authenticated
 
-成功返回 `302`，跳转到 MinIO 短效预签名地址。后端不返回 MinIO 密钥。
+成功返回 `200` 同源二进制流，不再跳转到 MinIO。附件为 `application/octet-stream` 并保留原文件名；封面为保存的图片 MIME 类型并使用 `inline`。响应含 `Content-Length` 与 `Cache-Control: no-store`。匿名请求 `401`；不存在或选手不可见的文件 `404`。管理员可预览未发布题目的文件。
 
 推荐使用链接或 `location.assign()` 下载：
 
@@ -1105,3 +1105,10 @@ remainingSeconds <= 1800
   "service": "tracequest-backend"
 }
 ```
+
+
+## 2026-11-04：题目文件同源下载修复
+
+`GET /api/v1/files/{fileId}` 保持登录鉴权，成功响应由 `302` 预签名跳转改为 `200` 同源二进制流。内容仍存放在 MinIO；不对浏览器返回存储地址、凭据或可转赠的签名链接。响应带 `Content-Length` 和 `Cache-Control: no-store`；附件使用 `application/octet-stream` 及包含原始 UTF-8 文件名的 `Content-Disposition: attachment`，封面使用保存的图片 MIME 类型及 `inline`。匿名请求 `401`；文件不存在、题目不存在或选手无权查看该题时 `404`；管理员可预览未发布题目的文件。文件读取失败返回既有存储错误，流式传输中断由客户端判为下载失败。
+
+题目列表/详情中的 `coverUrl` 与 `attachments[].downloadUrl` 均继续使用 `/api/v1/files/{fileId}`，无需变更请求字段。前端下载继续通过同源会话读取；上传封面读取失败时不再替换成默认自然素材，避免显示不属于该题的图片。未登录时受保护封面不可读取，登录后重新进入题目列表加载。
