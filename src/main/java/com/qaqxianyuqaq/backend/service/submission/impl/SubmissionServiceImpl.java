@@ -187,6 +187,10 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         // 6. 分页查询并批量装配题目信息
         IPage<Submission> page = submissionMapper.selectPage(new Page<>(query.page(), query.pageSize()), wrapper);
+        // 当前页为空时保留分页总数，避免空集合批量查询生成非法 SQL。
+        if (page.getRecords().isEmpty()) {
+            return PageUtil.toPage(page, List.of());
+        }
         Map<String, Challenge> challenges = challengeMapper.selectBatchIds(
                         page.getRecords().stream().map(Submission::getChallengeId).distinct().toList())
                 .stream().collect(Collectors.toMap(Challenge::getId, Function.identity()));

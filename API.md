@@ -629,6 +629,8 @@ Idempotency-Key: <uuid>
 | `page` | 页码 |
 | `pageSize` | 每页数量 |
 
+没有提交、筛选无匹配记录或请求页没有记录时返回 `200` 和 `items: []`，不会将空结果视为服务端错误。分页保留请求的 `page/pageSize` 与实际 `total/totalPages`；例如总共 2 条记录、请求第 2 页且每页 100 条时返回 `{"items":[],"pagination":{"page":2,"pageSize":100,"total":2,"totalPages":1}}`。仍只允许查询本人或当前队伍在指定赛事的记录；匿名返回 `401`。响应不包含明文答案。
+
 ### 7.4 单条提交记录
 
 `GET /api/v1/me/submissions/{submissionId}`
